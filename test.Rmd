@@ -1,0 +1,88 @@
+---
+title: "Test"
+author: "Eric Brist"
+date: "March 28, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ISLR) # Hitters #
+library(leaps) # regsubsets #
+library(CombMSC) # Cp #
+library(car) # vif #
+library(glmnet) # glmnet, cv.glmnet #
+library(knitr)
+library(kableExtra)
+### Data ###
+dat = Hitters # p 14, 244 #
+sum(is.na(dat$Salary)) # 59 #
+dat = na.omit(dat) # omit missing values #
+y = dat$Salary
+X = dat[,names(dat)!='Salary']
+n = nrow(dat); p = ncol(X) # 263 x 20 #
+### Best Subsets ###
+# Functions #
+fit.crit = function(fit) { # model fit criteria #
+ sfit = summary(fit); # sse = deviance(fit) #
+ c(r2=sfit$r.squared,adjr2=sfit$adj.r.squared,
+ aic=AIC(fit,k=2),bic=AIC(fit,k=log(n))) }
+predict.regsubsets = function(object,newdata,id) {
+ form = as.formula(object$call[[2]]) # regsubset predict function #
+ mat = model.matrix(form,newdata) # p 249 #
+ coefi = coef(object,id=id)
+ xvars = names(coefi)
+ mat[,xvars]%*%coefi }
+mse.f = function(x,y) mean((y-x)^2) # mse #
+# Model Fit #
+fit.fo = lm(Salary~.,data=dat) # FO model #
+sfit.fo = summary(fit.fo)
+sfit.fo$coefficients # ch6nts, p 1 #
+fit.crit(fit.fo) # ch6nts, p 1 #
+vif(fit.fo)
+# Variable Selection #
+
+regfit.full = regsubsets(Salary ~ ., dat, nvmax = 19, nbest = 1)
+# regfit.fwd = regsubsets(Salary~.,dat,nvmax=19,method="forward")
+# regfit.bwd = regsubsets(Salary~.,dat,nvmax=19,method="backward")
+reg.sum = summary(regfit.full) # id variables #
+var.id = apply(reg.sum$which,2,as.numeric)[,-1]
+k = apply(var.id,1,sum)
+best.out1 = cbind(k,var.id) %>% data.frame()
+ # aic #
+reg.sum$aic = reg.sum$bic-(k+1)*log(n)+2*(k+1)
+crit.out = data.frame(reg.sum[c("rsq","adjr2","cp","aic","bic")])
+crit.out$rsq <- ifelse(crit.out$rsq == max(crit.out$rsq),
+                       cell_spec(round(crit.out$rsq, 4), bold = T),
+                       round(crit.out$rsq, 4))
+crit.out$adjr2 <- ifelse(crit.out$adjr2 == max(crit.out$adjr2),
+                       cell_spec(round(crit.out$adjr2, 4), bold = T),
+                       round(crit.out$adjr2, 4))
+crit.out$cp <- ifelse(crit.out$cp == min(crit.out$cp),
+                       cell_spec(round(crit.out$cp, 4), bold = T),
+                       round(crit.out$cp, 4))
+crit.out$aic <- ifelse(crit.out$aic == min(crit.out$aic),
+                       cell_spec(round(crit.out$aic, 4), bold = T),
+                       round(crit.out$aic, 4))
+crit.out$bic <- ifelse(crit.out$bic == min(crit.out$bic),
+                       cell_spec(round(crit.out$bic, 4), bold = T),
+                       round(crit.out$bic, 4))
+
+names(best.out1) <- c(names(best.out1)[1],
+                      cell_spec(names(best.out1)[-1], angle = 90))
+x <- cbind(best.out1,crit.out) # ch6nts, Appendix #
+```
+
+
+```{r}
+x %>% knitr::kable(format = "latex", escape = F) %>%
+  kable_styling("striped", full_width = F) %>%
+  row_spec(0, bold = T) %>%
+  kableExtra::landscape() 
+```
+
