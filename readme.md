@@ -10,7 +10,7 @@ Installation
 ------------
 
 ``` r
-devtools::install_bitbucket("ebrist/neatoutput", upgrade = F)
+devtools::install_github("ebrist/neatoutput")
 ```
 
 Usage
