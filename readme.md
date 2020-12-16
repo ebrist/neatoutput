@@ -2,7 +2,7 @@
 Overview
 --------
 
-The neatoutput package creates journal-quality LaTeX tables of various R output. This package is designed to be used in R Markdown documents that will be knitted to .pdf files; however, other formats such as HTML are also possible.
+The neatoutput package offers solutions for journal-quality LaTeX tables of linear model output in R. This package is designed to be used in R Markdown documents that will be knitted to .pdf files; however, other formats such as HTML are also possible.
 
 **Note:** This package is in an early development stage. The package currently contains functions for producing LaTeX, HTML, and Pandoc tables of linear models (lm), general linear models (GLM), and best subsets regression (regsubsets). There are plans for additional methods for other R objects.
 
